@@ -5,10 +5,13 @@ import 'package:grant_horners_system/domain/entities/reading_daily_state.dart';
 import 'package:grant_horners_system/domain/entities/reading_list.dart';
 import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
 import 'package:grant_horners_system/domain/link_helper.dart';
+import 'package:grant_horners_system/domain/translation_service.dart';
 import 'package:grant_horners_system/presentation/reading_progress_setup_page.dart';
 
 class ReadingOverviewPage extends StatefulWidget {
-  const ReadingOverviewPage({super.key});
+  const ReadingOverviewPage({super.key, required this.translationService});
+
+  final TranslationService translationService;
 
   @override
   State<ReadingOverviewPage> createState() => _ReadingOverviewPageState();
@@ -74,13 +77,15 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Grant Horner – Today\'s Reading'),
+        title: const Text('Today\'s Reading'),
         actions: [
           ElevatedButton(
             onPressed: () async {
               final changed = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
-                  builder: (_) => const ReadingProgressSetupPage(),
+                  builder: (_) => ReadingProgressSetupPage(
+                    translationService: widget.translationService,
+                  ),
                 ),
               );
 
@@ -89,7 +94,7 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
                 await _loadToday();
               }
             },
-            child: const Text('Set Starting Progress'),
+            child: const Text('Settings'),
           ),
 
           // IconButton(

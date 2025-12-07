@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
+import 'package:grant_horners_system/domain/entities/translations.dart';
+import 'package:grant_horners_system/domain/translation_service.dart';
 
 import '../domain/entities/reading_list.dart';
 import '../domain/entities/reading_daily_state.dart'
     show ListDailyState, nextChapterInList, previousChapterInList;
 
 class ReadingProgressSetupPage extends StatefulWidget {
-  const ReadingProgressSetupPage({super.key});
+  const ReadingProgressSetupPage({super.key, required this.translationService});
+
+  final TranslationService translationService;
 
   @override
   State<ReadingProgressSetupPage> createState() =>
@@ -15,6 +19,8 @@ class ReadingProgressSetupPage extends StatefulWidget {
 
 class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
   final _local = LocalReadingProgressDataSource();
+
+  TranslationService get translationService => widget.translationService;
 
   Map<ReadingList, ListDailyState> _state = {};
   bool _loading = true;
@@ -99,7 +105,7 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Set Starting Progress'),
+        title: const Text('Settings'),
         // actions: [
         // IconButton(
         //   onPressed: _reset,
@@ -141,6 +147,19 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
                 );
               },
             ),
+          ),
+
+          // e.g. in an AppBar menu or Settings screen
+          DropdownButton<BibleTranslation>(
+            value: translationNotifier.value,
+            items: BibleTranslation.values
+                .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                .toList(),
+            onChanged: (t) async {
+              if (t == null) return;
+              translationNotifier.value = t; // update in memory
+              await translationService.save(t); // persist to SharedPreferences
+            },
           ),
           SafeArea(
             top: false,
