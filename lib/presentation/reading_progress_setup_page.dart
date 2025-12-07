@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:grant_horners_system/domain/local_reading_progress_data_source.dart';
+import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
 
 import '../domain/entities/reading_list.dart';
 import '../domain/entities/reading_daily_state.dart'
@@ -98,7 +98,16 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Set Starting Progress')),
+      appBar: AppBar(
+        title: const Text('Set Starting Progress'),
+        // actions: [
+        // IconButton(
+        //   onPressed: _reset,
+        //   icon: const Icon(Icons.refresh),
+        //   tooltip: 'Reset all progress',
+        // ),
+        // ],
+      ),
       body: Column(
         children: [
           const Padding(

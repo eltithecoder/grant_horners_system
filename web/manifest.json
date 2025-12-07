@@ -1,6 +1,6 @@
 {
-    "name": "grant_horners_system",
-    "short_name": "grant_horners_system",
+    "name": "Bible Track",
+    "short_name": "Bible Track",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:grant_horners_system/domain/entities/reading_daily_state.dart';
 import 'package:grant_horners_system/domain/entities/reading_list.dart';
-import 'package:grant_horners_system/domain/local_reading_progress_data_source.dart';
+import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
+import 'package:grant_horners_system/domain/link_helper.dart';
 import 'package:grant_horners_system/presentation/reading_progress_setup_page.dart';
 
 class ReadingOverviewPage extends StatefulWidget {
@@ -60,10 +61,10 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
     });
   }
 
-  Future<void> _reset() async {
-    await _local.reset();
-    await _loadToday();
-  }
+  // Future<void> _reset() async {
+  //   await _local.reset();
+  //   await _loadToday();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -96,11 +97,11 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
           //   tooltip: 'Simulate next day',
           //   onPressed: _simulateNextDay,
           // ),
-          IconButton(
-            onPressed: _reset,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Reset all progress',
-          ),
+          // IconButton(
+          //   onPressed: _reset,
+          //   icon: const Icon(Icons.refresh),
+          //   tooltip: 'Reset all progress',
+          // ),
         ],
       ),
       body: ListView.builder(
@@ -112,7 +113,20 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
 
           return ListTile(
             title: Text(list.title),
-            subtitle: Text('${chapter.book.title} ${chapter.chapter}'),
+            subtitle: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () =>
+                    openYouVersionForChapter(chapter.book, chapter.chapter),
+                child: Text(
+                  '${chapter.book.title} ${chapter.chapter}',
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
             trailing: Checkbox(
               value: dailyState.completed,
               onChanged: (val) => _onCheckChanged(list, val),
