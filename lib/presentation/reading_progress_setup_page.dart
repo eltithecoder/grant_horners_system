@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
-import 'package:grant_horners_system/domain/entities/translations.dart';
-import 'package:grant_horners_system/domain/translation_service.dart';
-
-import '../domain/entities/reading_list.dart';
-import '../domain/entities/reading_daily_state.dart'
+import 'package:grant_horners_system/application/state/translation_state.dart';
+import 'package:grant_horners_system/core/l10n/app_localizations.dart';
+import 'package:grant_horners_system/core/l10n/l10n_extensions.dart';
+import 'package:grant_horners_system/domain/entities/app_language.dart';
+import 'package:grant_horners_system/domain/entities/reading_daily_state.dart'
     show ListDailyState, nextChapterInList, previousChapterInList;
+import 'package:grant_horners_system/domain/entities/reading_list.dart';
+import 'package:grant_horners_system/domain/entities/translations.dart';
+import 'package:grant_horners_system/domain/repositories/reading_progress_repository.dart';
+import 'package:grant_horners_system/domain/repositories/settings_repository.dart';
+import 'package:grant_horners_system/domain/repositories/translation_repository.dart';
 
 class ReadingProgressSetupPage extends StatefulWidget {
-  const ReadingProgressSetupPage({super.key, required this.translationService});
+  const ReadingProgressSetupPage({
+    super.key,
+    required this.translationRepository,
+    required this.settingsRepository,
+    required this.progressRepository,
+  });
 
-  final TranslationService translationService;
+  final TranslationRepository translationRepository;
+  final SettingsRepository settingsRepository;
+  final ReadingProgressRepository progressRepository;
 
   @override
   State<ReadingProgressSetupPage> createState() =>
@@ -18,13 +29,19 @@ class ReadingProgressSetupPage extends StatefulWidget {
 }
 
 class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
-  final _local = LocalReadingProgressDataSource();
+  late final ReadingProgressRepository _progressRepository =
+      widget.progressRepository;
+  late final SettingsRepository _settingsRepository =
+      widget.settingsRepository;
 
-  TranslationService get translationService => widget.translationService;
+  TranslationRepository get translationRepository =>
+      widget.translationRepository;
 
   Map<ReadingList, ListDailyState> _state = {};
   bool _loading = true;
   bool _saving = false;
+  AppLanguage _language = languageNotifier.value;
+  bool _useBiblaAl = useBiblaAlNotifier.value;
 
   @override
   void initState() {
@@ -33,11 +50,30 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
   }
 
   Future<void> _loadCurrent() async {
-    final map = await _local.loadForToday();
+    final map = await _progressRepository.loadForToday();
     setState(() {
       _state = map;
       _loading = false;
     });
+  }
+
+  Future<void> _onTranslationChanged(BibleTranslation? translation) async {
+    if (translation == null) return;
+    translationNotifier.value = translation;
+    await translationRepository.save(translation);
+  }
+
+  Future<void> _onLanguageChanged(AppLanguage? language) async {
+    if (language == null) return;
+    setState(() => _language = language);
+    languageNotifier.value = language;
+    await _settingsRepository.saveLanguage(language);
+  }
+
+  Future<void> _onUseBiblaAlChanged(bool value) async {
+    setState(() => _useBiblaAl = value);
+    useBiblaAlNotifier.value = value;
+    await _settingsRepository.saveUseBiblaAl(value);
   }
 
   Future<void> _increment(ReadingList list) async {
@@ -82,7 +118,10 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
     Map<ReadingList, ListDailyState> latest = _state;
     for (final list in ReadingList.values) {
       final chapter = _state[list]!.currentChapter;
-      latest = await _local.setCurrentChapterForToday(list, chapter);
+      latest = await _progressRepository.setCurrentChapterForToday(
+        list,
+        chapter,
+      );
     }
 
     setState(() {
@@ -99,72 +138,111 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
-        // actions: [
-        // IconButton(
-        //   onPressed: _reset,
-        //   icon: const Icon(Icons.refresh),
-        //   tooltip: 'Reset all progress',
-        // ),
-        // ],
+        title: Text(l10n.settings),
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.all(12.0),
         children: [
-          const Padding(
-            padding: EdgeInsets.all(12.0),
-            child: Text(
-              'Use + and – to set where you are now in each list.\n'
-              'This will be the chapter you see today.',
-              textAlign: TextAlign.center,
+          Text(
+            l10n.settingsIntro,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text(l10n.readingPositionsTitle),
+                  subtitle: Text(l10n.readingPositionsSubtitle),
+                ),
+                const Divider(height: 1),
+                ...ListTile.divideTiles(
+                  context: context,
+                  tiles: ReadingList.values.map((list) {
+                    final dailyState = _state[list]!;
+                    final chapter = dailyState.currentChapter;
+
+                    return ListTile(
+                      title: Text(list.localizedTitle(l10n)),
+                      subtitle: Text(
+                        l10n.chapterLabel(
+                          chapter.book.localizedTitle(l10n),
+                          chapter.chapter,
+                        ),
+                      ),
+                      leading: IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: () => _decrement(list),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () => _increment(list),
+                      ),
+                    );
+                  }),
+                ).toList(),
+              ],
             ),
           ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
-              itemCount: ReadingList.values.length,
-              itemBuilder: (context, index) {
-                final list = ReadingList.values[index];
-                final dailyState = _state[list]!;
-                final chapter = dailyState.currentChapter;
-
-                return ListTile(
-                  title: Text(list.title),
-                  subtitle: Text('${chapter.book.title} ${chapter.chapter}'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed: () => _decrement(list),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text(l10n.languageTitle),
+                  subtitle: Text(l10n.languageSubtitle),
+                  trailing: DropdownButton<AppLanguage>(
+                    value: _language,
+                    onChanged: _onLanguageChanged,
+                    items: AppLanguage.values
+                        .map(
+                          (lang) => DropdownMenuItem(
+                            value: lang,
+                            child: Text(lang.localizedLabel(l10n)),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () => _increment(list),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(l10n.bibleTranslationTitle),
+                  subtitle: Text(l10n.bibleTranslationSubtitle),
+                  trailing: DropdownButton<BibleTranslation>(
+                    value: translationNotifier.value,
+                    onChanged: _onTranslationChanged,
+                    items: BibleTranslation.values
+                        .map(
+                          (t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t.label),
+                          ),
+                        )
+                        .toList(),
                   ),
-                );
-              },
+                ),
+                SwitchListTile(
+                  title: Text(l10n.useBiblaTitle),
+                  subtitle: Text(l10n.useBiblaSubtitle),
+                  value: _useBiblaAl,
+                  onChanged: _onUseBiblaAlChanged,
+                ),
+              ],
             ),
-          ),
-
-          // e.g. in an AppBar menu or Settings screen
-          DropdownButton<BibleTranslation>(
-            value: translationNotifier.value,
-            items: BibleTranslation.values
-                .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
-                .toList(),
-            onChanged: (t) async {
-              if (t == null) return;
-              translationNotifier.value = t; // update in memory
-              await translationService.save(t); // persist to SharedPreferences
-            },
           ),
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.only(top: 12.0),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -176,7 +254,7 @@ class _ReadingProgressSetupPageState extends State<ReadingProgressSetupPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.check),
-                  label: Text(_saving ? 'Saving...' : 'Save & Back'),
+                  label: Text(_saving ? l10n.savingLabel : l10n.saveAndBack),
                 ),
               ),
             ),

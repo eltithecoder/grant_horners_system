@@ -1,24 +1,36 @@
 // presentation/reading_overview_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:grant_horners_system/core/l10n/app_localizations.dart';
+import 'package:grant_horners_system/core/l10n/l10n_extensions.dart';
 import 'package:grant_horners_system/domain/entities/reading_daily_state.dart';
 import 'package:grant_horners_system/domain/entities/reading_list.dart';
-import 'package:grant_horners_system/data/local_reading_progress_data_source.dart';
-import 'package:grant_horners_system/domain/link_helper.dart';
-import 'package:grant_horners_system/domain/translation_service.dart';
+import 'package:grant_horners_system/domain/repositories/reading_progress_repository.dart';
+import 'package:grant_horners_system/domain/repositories/settings_repository.dart';
+import 'package:grant_horners_system/domain/repositories/translation_repository.dart';
+import 'package:grant_horners_system/core/link_helper.dart';
 import 'package:grant_horners_system/presentation/reading_progress_setup_page.dart';
 
 class ReadingOverviewPage extends StatefulWidget {
-  const ReadingOverviewPage({super.key, required this.translationService});
+  const ReadingOverviewPage({
+    super.key,
+    required this.translationRepository,
+    required this.settingsRepository,
+    required this.progressRepository,
+  });
 
-  final TranslationService translationService;
+  final TranslationRepository translationRepository;
+  final SettingsRepository settingsRepository;
+  final ReadingProgressRepository progressRepository;
 
   @override
   State<ReadingOverviewPage> createState() => _ReadingOverviewPageState();
 }
 
 class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
-  final _local = LocalReadingProgressDataSource();
+  late final ReadingProgressRepository _progressRepository =
+      widget.progressRepository;
+
   Map<ReadingList, ListDailyState> _state = {};
   bool _loading = true;
 
@@ -32,7 +44,7 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
   }
 
   Future<void> _loadToday() async {
-    final map = await _local.loadForToday();
+    final map = await _progressRepository.loadForToday();
     setState(() {
       _state = map;
       _loading = false;
@@ -45,7 +57,7 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
   //   _debugOffsetDays += 1;
 
   //   final fakeDate = DateTime.now().add(Duration(days: _debugOffsetDays));
-  //   final map = await _local.loadForDate(fakeDate);
+  //   final map = await _progressRepository.loadForDate(fakeDate);
 
   //   setState(() {
   //     _state = map;
@@ -57,7 +69,7 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
     final newValue = value ?? false; // treat null as false
 
     setState(() => _loading = true);
-    final updated = await _local.setTodayCompleted(list, newValue);
+    final updated = await _progressRepository.setTodayCompleted(list, newValue);
     setState(() {
       _state = updated;
       _loading = false;
@@ -65,26 +77,32 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
   }
 
   // Future<void> _reset() async {
-  //   await _local.reset();
+  //   await _progressRepository.reset();
   //   await _loadToday();
   // }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_loading && _state.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Today\'s Reading'),
+        // title alignment
+        centerTitle: false,
+        title: Text(l10n.todaysReadingTitle),
         actions: [
           ElevatedButton(
             onPressed: () async {
               final changed = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
                   builder: (_) => ReadingProgressSetupPage(
-                    translationService: widget.translationService,
+                    translationRepository: widget.translationRepository,
+                    settingsRepository: widget.settingsRepository,
+                    progressRepository: widget.progressRepository,
                   ),
                 ),
               );
@@ -94,7 +112,7 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
                 await _loadToday();
               }
             },
-            child: const Text('Settings'),
+            child: Text(l10n.settings),
           ),
 
           // IconButton(
@@ -117,14 +135,17 @@ class _ReadingOverviewPageState extends State<ReadingOverviewPage> {
           final chapter = dailyState.currentChapter;
 
           return ListTile(
-            title: Text(list.title),
+            title: Text(list.localizedTitle(l10n)),
             subtitle: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () =>
                     openYouVersionForChapter(chapter.book, chapter.chapter),
                 child: Text(
-                  '${chapter.book.title} ${chapter.chapter}',
+                  l10n.chapterLabel(
+                    chapter.book.localizedTitle(l10n),
+                    chapter.chapter,
+                  ),
                   style: TextStyle(
                     decoration: TextDecoration.underline,
                     color: Theme.of(context).colorScheme.primary,

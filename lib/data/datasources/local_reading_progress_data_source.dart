@@ -1,10 +1,10 @@
-// data/local_reading_progress_data_source.dart
+// data/datasources/local_reading_progress_data_source.dart
 
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../domain/entities/reading_list.dart';
-import '../domain/entities/reading_daily_state.dart';
+import 'package:grant_horners_system/domain/entities/reading_daily_state.dart';
+import 'package:grant_horners_system/domain/entities/reading_list.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalReadingProgressDataSource {
   static const _storageKey = 'reading_daily_progress_v1';

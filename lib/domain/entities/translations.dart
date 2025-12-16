@@ -1,15 +1,12 @@
-import 'package:flutter/foundation.dart';
-
 enum BibleTranslation {
-  kjv(1, 'KJV'),
-  niv(111, 'NIV'),
-  esv(59, 'ESV'),
-  al(3631, 'AL'),
-  albb(7, 'ALBB');
+  kjv(youVersionId: 1, label: 'KJV'),
+  niv(youVersionId: 111, label: 'NIV'),
+  esv(youVersionId: 59, label: 'ESV'),
+  al(youVersionId: 3631, label: 'AL'),
+  albb(youVersionId: 7, label: 'ALBB');
 
-  final int versionId;
+  final int youVersionId;
   final String label;
-  const BibleTranslation(this.versionId, this.label);
-}
 
-late ValueNotifier<BibleTranslation> translationNotifier;
+  const BibleTranslation({required this.youVersionId, required this.label});
+}
