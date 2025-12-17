@@ -27,6 +27,32 @@
       }
     }
   },
+  "chapterProgress": "{current} / {total} chapters",
+  "@chapterProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "readChapter": "Read chapter",
+  "listenChapter": "Listen to chapter",
+  "audioDuration": "({minutes} min {seconds} sec)",
+  "@audioDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "audioLoading": "Loading...",
+  "audioUnavailable": "Duration unavailable",
   "readingListGospels": "Gospels",
   "readingListPentateuch": "Pentateuch",
   "readingListPaulineMajor": "Pauline Epistles (Major)",

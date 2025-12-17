@@ -63,6 +63,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chapterProgress(int current, int total) {
+    return '$current / $total chapters';
+  }
+
+  @override
+  String get readChapter => 'Read chapter';
+
+  @override
+  String get listenChapter => 'Listen to chapter';
+
+  @override
+  String audioDuration(int minutes, int seconds) {
+    return '($minutes min $seconds sec)';
+  }
+
+  @override
+  String get audioLoading => 'Loading...';
+
+  @override
+  String get audioUnavailable => 'Duration unavailable';
+
+  @override
   String get readingListGospels => 'Gospels';
 
   @override

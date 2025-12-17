@@ -27,6 +27,32 @@
       }
     }
   },
+  "chapterProgress": "{current} / {total} kapituj",
+  "@chapterProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "readChapter": "Lexo kapitullin",
+  "listenChapter": "Dëgjo kapitullin",
+  "audioDuration": "({minutes} min {seconds} sek)",
+  "@audioDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "audioLoading": "Duke ngarkuar...",
+  "audioUnavailable": "Kohëzgjatja nuk disponohet",
   "readingListGospels": "Ungjijtë",
   "readingListPentateuch": "Pesëlibërshi",
   "readingListPaulineMajor": "Letrat e Palit (kryesore)",

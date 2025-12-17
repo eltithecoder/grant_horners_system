@@ -200,6 +200,42 @@ abstract class AppLocalizations {
   /// **'{book} {chapter}'**
   String chapterLabel(String book, int chapter);
 
+  /// No description provided for @chapterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total} chapters'**
+  String chapterProgress(int current, int total);
+
+  /// No description provided for @readChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Read chapter'**
+  String get readChapter;
+
+  /// No description provided for @listenChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to chapter'**
+  String get listenChapter;
+
+  /// No description provided for @audioDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'({minutes} min {seconds} sec)'**
+  String audioDuration(int minutes, int seconds);
+
+  /// No description provided for @audioLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get audioLoading;
+
+  /// No description provided for @audioUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration unavailable'**
+  String get audioUnavailable;
+
   /// No description provided for @readingListGospels.
   ///
   /// In en, this message translates to:

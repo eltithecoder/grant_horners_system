@@ -65,6 +65,28 @@ class AppLocalizationsSq extends AppLocalizations {
   }
 
   @override
+  String chapterProgress(int current, int total) {
+    return '$current / $total kapituj';
+  }
+
+  @override
+  String get readChapter => 'Lexo kapitullin';
+
+  @override
+  String get listenChapter => 'Dëgjo kapitullin';
+
+  @override
+  String audioDuration(int minutes, int seconds) {
+    return '($minutes min $seconds sek)';
+  }
+
+  @override
+  String get audioLoading => 'Duke ngarkuar...';
+
+  @override
+  String get audioUnavailable => 'Kohëzgjatja nuk disponohet';
+
+  @override
   String get readingListGospels => 'Ungjijtë';
 
   @override
